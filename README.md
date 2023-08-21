@@ -1,7 +1,7 @@
 # Drive Monitor
 
 Drive Monitor is a [Home Assistant](https://home-assistant.io) (HA) integration
-that monitors storage devices attached to the HA host machine.
+that monitors storage devices attached to the host machine.
 
 Unlike the built-in
 [System Monitor](https://www.home-assistant.io/integrations/systemmonitor/)
@@ -27,7 +27,7 @@ This lets you set up alerts that provide advance warning before a drive fails.
 
 2. Copy the `drive_monitor` directory to your `custom_components` directory.
 
-3. [<img src="https://my.home-assistant.io/badges/config_flow_start.svg">](https://my.home-assistant.io/redirect/config_flow_start?domain=drive_monitor
+3. [<img src="https://my.home-assistant.io/badges/config_flow_start.svg">](https://my.home-assistant.io/redirect/config_flow_start?domain=drive_monitor)
    from the HA UI.
 
 This integration is not yet available on [HACS](https://hacs.xyz/).
