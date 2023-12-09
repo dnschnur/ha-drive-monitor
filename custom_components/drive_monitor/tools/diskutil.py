@@ -66,15 +66,14 @@ class DiskUtil:
 
     # Unfortunately 'apfs list' doesn't include RAID members. Query those
     # separately, and generate a mapping that we can then use to merge them.
-    raids = await asyncio.gather(*[self.get_raid_info(raid_id.node) for raid_id in raid_ids])
-    raid_members = {raid.id: raid.members for raid in raids}
+    raids = {raid_id.id: await self.get_raid_info(raid_id.node) for raid_id in raid_ids}
 
     drives = []
     for container in info['Containers']:
       for drive in container['PhysicalStores']:
         drive_id = drive['DiskUUID']
-        if drive_id in raid_members:
-          drives.extend(StoreID(member.id, member.node) for member in raid_members[drive_id])
+        if drive_id in raids:
+          drives.extend(StoreID(member.id, member.node) for member in raids[drive_id].members)
         else:
           drives.append(StoreID(drive_id, base_node(drive['DeviceIdentifier'])))
 

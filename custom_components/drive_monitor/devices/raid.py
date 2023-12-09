@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from enum import unique, Enum
 from functools import cached_property
 
+from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.entity import DeviceInfo
 
 from ..const import DOMAIN
