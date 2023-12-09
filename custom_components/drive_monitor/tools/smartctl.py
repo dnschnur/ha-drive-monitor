@@ -52,7 +52,7 @@ class SmartCtl:
     return DriveInfo(
         name=info['device']['name'],
         type=info['device']['type'],
-        manufacturer=get_manufacturer(info['model_family']),
+        manufacturer=get_manufacturer(info['model_family'] or info['model_name']),
         model=info['model_name'],
         serial_number=info['serial_number'],
         firmware_version=info['firmware_version'],
