@@ -3,6 +3,7 @@
   "name": "Drive Monitor",
   "version": "0.0.1",
   "codeowners": ["@dnschnur"],
+  "config_flow": true,
   "documentation": "README.md",
   "dependencies": [],
   "requirements": [],
