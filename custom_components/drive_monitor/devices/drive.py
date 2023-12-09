@@ -80,14 +80,18 @@ class Drive(Device):
 
     self.state = DeviceSensor(
         self, 'State', icon='mdi:harddisk', value=DriveState.UNKNOWN, values=DriveState)
-    self.capacity = DeviceSensor(
-        self, 'Capacity',
-        device_class=SensorDeviceClass.DATA_SIZE,
-        unit_of_measurement='B')
-    self.usage = DeviceSensor(
-        self, 'Usage',
-        device_class=SensorDeviceClass.DATA_SIZE,
-        unit_of_measurement='B')
+
+    # RAID member drives don't have their own capacity and usage.
+    if not store.raid:
+      self.capacity = DeviceSensor(
+          self, 'Capacity',
+          device_class=SensorDeviceClass.DATA_SIZE,
+          unit_of_measurement='B')
+      self.usage = DeviceSensor(
+          self, 'Usage',
+          device_class=SensorDeviceClass.DATA_SIZE,
+          unit_of_measurement='B')
+
     self.temperature = DeviceSensor(
         self, 'Temperature',
         device_class=SensorDeviceClass.TEMPERATURE,
