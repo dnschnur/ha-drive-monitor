@@ -5,9 +5,9 @@ import logging
 import plistlib
 import re
 
-from ..devices.device import NodeNotFoundError, StoreID
-from ..devices.drive import DriveInfo
-from ..devices.raid import RAIDDriveInfo, RAIDInfo, RAIDState, RAIDType
+from ..devices.device import NodeNotFoundError
+from ..devices.drive import DriveID, DriveInfo
+from ..devices.raid import RAIDDriveInfo, RAIDID, RAIDInfo, RAIDState, RAIDType
 from ..types import PList
 from ..utils import async_cache
 
@@ -57,7 +57,7 @@ def parse_type(type: str) -> RAIDType:
 class DiskUtil:
   """Wrapper around the MacOS Disk Utility 'diskutil' command."""
 
-  async def get_drives(self) -> list[StoreID]:
+  async def get_drives(self) -> list[DriveID]:
     """Enumerates and returns all physical drives present on the system.
 
     This includes drives that are grouped together into RAIDs.
@@ -73,16 +73,17 @@ class DiskUtil:
       for drive in container['PhysicalStores']:
         drive_id = drive['DiskUUID']
         if drive_id in raids:
-          drives.extend(StoreID(member.id, member.node) for member in raids[drive_id].members)
+          drives.extend(DriveID(member.id, member.node, raid=drive_id)
+                        for member in raids[drive_id].members)
         else:
-          drives.append(StoreID(drive_id, base_node(drive['DeviceIdentifier'])))
+          drives.append(DriveID(drive_id, base_node(drive['DeviceIdentifier'])))
 
     return drives
 
-  async def get_raids(self) -> list[StoreID]:
+  async def get_raids(self) -> list[RAIDID]:
     """Enumerates and returns all RAIDs present on the system."""
     info = await self._execute('appleraid', 'list')
-    return [StoreID(id=raid['AppleRAIDSetUUID'], node=base_node(raid['BSD Name']))
+    return [RAIDID(id=raid['AppleRAIDSetUUID'], node=base_node(raid['BSD Name']))
             for raid in info.get('AppleRAIDSets', [])]
 
   async def get_drive_info(self, node: str) -> DriveInfo:

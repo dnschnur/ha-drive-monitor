@@ -9,9 +9,8 @@ import asyncio
 
 from functools import cached_property
 
-from ..devices.device import StoreID
-from ..devices.drive import DriveInfo
-from ..devices.raid import RAIDInfo
+from ..devices.drive import DriveID, DriveInfo
+from ..devices.raid import RAIDID, RAIDInfo
 
 from ..tools.diskutil import DiskUtil
 from ..tools.smartctl import SmartCtl
@@ -32,14 +31,14 @@ class MacOSSource(Source):
     """Wrapper around the `smartctl` command-line tool."""
     return SmartCtl()
 
-  async def get_drives(self) -> list[StoreID]:
+  async def get_drives(self) -> list[DriveID]:
     """Enumerates and returns all physical drives present on the system.
 
     This includes drives that are grouped together into RAIDs.
     """
     return await self._diskutil.get_drives()
 
-  async def get_raids(self) -> list[StoreID]:
+  async def get_raids(self) -> list[RAIDID]:
     """Enumerates and returns all RAIDs present on the system."""
     return await self._diskutil.get_raids()
 

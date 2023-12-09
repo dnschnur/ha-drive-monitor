@@ -59,10 +59,10 @@ class DeviceManager:
     source = Source.get()
     drives, raids = await asyncio.gather(source.get_drives(), source.get_raids())
 
-    for info in drives:
-      self.drives[info.node] = Drive(info)
+    for drive in drives:
+      self.drives[drive.node] = Drive(drive)
 
-    for info in raids:
-      self.raids[info.node] = RAID(info)
+    for raid in raids:
+      self.raids[raid.node] = RAID(raid)
 
     LOGGER.info(f'Discovered {len(drives)} drives and {len(raids)} RAIDs.')

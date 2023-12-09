@@ -18,6 +18,16 @@ from ..utils import async_cache
 from .device import Device, DeviceSensor, StoreID
 
 
+@dataclass(frozen=True)
+class DriveID(StoreID):
+  """Key used to uniquely identify drives attached to a computer.
+
+  Attrs:
+    raid: Unique ID of the RAID to which this drive belongs, if any.
+  """
+  raid: str | None = None
+
+
 @unique
 class DriveState(Enum):
   """Physical drive type/interface."""
@@ -61,7 +71,7 @@ class DriveInfo:
 class Drive(Device):
   """Device representing a physical drive and all of its HA Entities."""
 
-  def __init__(self, store: StoreID):
+  def __init__(self, store: DriveID):
     super().__init__(store)
 
     self.manufacturer: Manufacturer | None = None

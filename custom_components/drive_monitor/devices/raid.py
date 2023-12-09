@@ -19,6 +19,11 @@ from .device import Device, DeviceSensor, StoreID
 from .drive import Drive
 
 
+@dataclass(frozen=True)
+class RAIDID(StoreID):
+  """Key used to uniquely identify RAIDs attached to a computer."""
+
+
 @unique
 class RAIDType(Enum):
   """State of a single drive within a RAID."""
@@ -58,7 +63,7 @@ class RAIDInfo:
 class RAID(Device):
   """Device representing a RAID, its drives, and all of its HA Entities."""
 
-  def __init__(self, store: StoreID):
+  def __init__(self, store: RAIDID):
     super().__init__(store)
 
     self.drives: list[Drive] = []

@@ -31,9 +31,8 @@ from functools import cache
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-  from ..devices.device import StoreID
-  from ..devices.drive import DriveInfo
-  from ..devices.raid import RAIDInfo
+  from ..devices.drive import DriveID, DriveInfo
+  from ..devices.raid import RAIDID, RAIDInfo
 
 
 class Error(Exception):
@@ -63,14 +62,14 @@ class Source(ABC):
     raise SourceNotFoundError(f'No Source defined for {name}')
 
   @abstractmethod
-  async def get_drives(self) -> list[StoreID]:
+  async def get_drives(self) -> list[DriveID]:
     """Returns keys for all physical drives present on the system.
 
     This includes drives that are grouped together into RAIDs.
     """
 
   @abstractmethod
-  async def get_raids(self) -> list[StoreID]:
+  async def get_raids(self) -> list[RAIDID]:
     """Returns keys for all RAIDs present on the system."""
 
   @abstractmethod
