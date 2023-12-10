@@ -11,15 +11,18 @@ from ..utils import async_cache
 
 LOGGER = logging.getLogger(__name__)
 
-NVME_DATA_UNIT_SIZE = 512000
 
+def parse_data_units(info: JSON, key: str) -> int | None:
+  """Parses the given 'data units' value into a value in bytes."""
+  if key in info:
+    return info[key] * 512000  # Number of bytes in a data unit
+  return None
 
 def parse_smart_state(info: JSON) -> bool:
   """Parses S.M.A.R.T. details into a pass/fail state."""
-  smart_status = info.get('smart_status', None)
-  if not smart_status:
-    return False
-  return smart_status.get('passed', False)
+  if smart_status := info.get('smart_status'):
+    return smart_status.get('passed', False)
+  return False
 
 
 def parse_ssd_info(info: JSON) -> SSDInfo | None:
@@ -29,8 +32,8 @@ def parse_ssd_info(info: JSON) -> SSDInfo | None:
 
   nvme_info = info['nvme_smart_health_information_log']
   return SSDInfo(
-      bytes_read=nvme_info.get('data_units_read') * NVME_DATA_UNIT_SIZE,
-      bytes_written=nvme_info.get('data_units_written') * NVME_DATA_UNIT_SIZE,
+      bytes_read=parse_data_units(nvme_info, 'data_units_read'),
+      bytes_written=parse_data_units(nvme_info, 'data_units_written'),
       available_spare=nvme_info.get('available_spare'),
       available_spare_threshold=nvme_info.get('available_spare_threshold'),
       unsafe_shutdowns=nvme_info.get('unsafe_shutdowns'))
@@ -56,7 +59,7 @@ class SmartCtl:
     return DriveInfo(
         name=info['device']['name'],
         type=info['device']['type'],
-        manufacturer=get_manufacturer(info['model_family'] or info['model_name']),
+        manufacturer=get_manufacturer(info.get('model_family', info['model_name'])),
         model=info['model_name'],
         serial_number=info['serial_number'],
         firmware_version=info['firmware_version'],
