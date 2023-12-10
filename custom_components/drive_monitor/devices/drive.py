@@ -47,6 +47,8 @@ class DriveType(Enum):
 @dataclass
 class SSDInfo:
   """Additional attributes specific to solid-state disks."""
+  bytes_read: int | None = None
+  bytes_written: int | None = None
   available_spare: int | None = None
   available_spare_threshold: int | None = None
   unsafe_shutdowns: int | None = None

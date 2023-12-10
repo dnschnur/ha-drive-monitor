@@ -11,6 +11,8 @@ from ..utils import async_cache
 
 LOGGER = logging.getLogger(__name__)
 
+NVME_DATA_UNIT_SIZE = 512000
+
 
 def parse_smart_state(info: JSON) -> bool:
   """Parses S.M.A.R.T. details into a pass/fail state."""
@@ -27,6 +29,8 @@ def parse_ssd_info(info: JSON) -> SSDInfo | None:
 
   nvme_info = info['nvme_smart_health_information_log']
   return SSDInfo(
+      bytes_read=nvme_info.get('data_units_read') * NVME_DATA_UNIT_SIZE,
+      bytes_written=nvme_info.get('data_units_written') * NVME_DATA_UNIT_SIZE,
       available_spare=nvme_info.get('available_spare'),
       available_spare_threshold=nvme_info.get('available_spare_threshold'),
       unsafe_shutdowns=nvme_info.get('unsafe_shutdowns'))
