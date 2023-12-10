@@ -4,7 +4,7 @@ import asyncio
 import typing
 
 from dataclasses import dataclass
-from enum import unique, Enum
+from enum import unique, StrEnum
 
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.entity import DeviceInfo
@@ -29,7 +29,7 @@ class DriveID(StoreID):
 
 
 @unique
-class DriveState(Enum):
+class DriveState(StrEnum):
   """Physical drive type/interface."""
   UNKNOWN = 'Unknown'  # Unknown/unrecognized state.
   HEALTHY = 'Healthy'  # Drive is passing S.M.A.R.T. checks.
@@ -37,7 +37,7 @@ class DriveState(Enum):
 
 
 @unique
-class DriveType(Enum):
+class DriveType(StrEnum):
   """Physical drive type/interface."""
   UNKNOWN = 'Unknown'  # Unrecognized/unsupported type.
   HDD = 'HDD'  # Spinning magnetic disk

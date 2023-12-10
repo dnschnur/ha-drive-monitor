@@ -3,7 +3,7 @@
 import asyncio
 
 from dataclasses import dataclass, field
-from enum import unique, Enum
+from enum import unique, StrEnum
 from functools import cached_property
 
 from homeassistant.components.sensor import SensorDeviceClass
@@ -25,7 +25,7 @@ class RAIDID(StoreID):
 
 
 @unique
-class RAIDType(Enum):
+class RAIDType(StrEnum):
   """State of a single drive within a RAID."""
   UNKNOWN = 'Unknown'  # Unrecognized/unsupported type.
   SPAN = 'Span'        # SPAN/BIG: Multiple drives concatenated into a larger one.  
@@ -34,7 +34,7 @@ class RAIDType(Enum):
 
 
 @unique
-class RAIDState(Enum):
+class RAIDState(StrEnum):
   """State of either the overall RAID or a single drive within it."""
   UNKNOWN = 'Unknown'  # Unrecognized/unsupported state.
   ONLINE = 'Online'    # Online with no faults at the RAID level.
