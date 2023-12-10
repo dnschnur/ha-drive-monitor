@@ -10,7 +10,7 @@ from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.entity import DeviceInfo
 
 from ..const import DOMAIN
-from ..devices.device import NodeNotFoundError
+from ..devices.device import DeviceNotFoundError
 from ..manufacturers import Manufacturer
 from ..sources.source import Source
 from ..utils import async_cache
@@ -115,7 +115,7 @@ class Drive(Device):
     """Updates all of the device's attributes and entities."""
     try:
       info = await Source.get().get_drive_info(self.node)
-    except NodeNotFoundError:  # Most likely a removable drive
+    except DeviceNotFoundError:  # Most likely a removable drive
       return
 
     self.name = info.name

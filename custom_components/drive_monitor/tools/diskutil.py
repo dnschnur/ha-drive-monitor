@@ -5,7 +5,7 @@ import logging
 import plistlib
 import re
 
-from ..devices.device import NodeNotFoundError
+from ..devices.device import DeviceNotFoundError
 from ..devices.drive import DriveID, DriveInfo
 from ..devices.raid import RAIDDriveInfo, RAIDID, RAIDInfo, RAIDState, RAIDType
 from ..types import PList
@@ -101,7 +101,7 @@ class DiskUtil:
               capacity=container['CapacityCeiling'],
               usage=container['CapacityCeiling'] - container['CapacityFree'])
 
-    raise NodeNotFoundError(f'There is no drive with node "{node}".')
+    raise DeviceNotFoundError(f'There is no drive with node "{node}".')
 
   async def get_raid_info(self, node: str) -> RAIDInfo:
     """Returns details and state for the given RAID.
@@ -120,7 +120,7 @@ class DiskUtil:
             members=[parse_drive_info(drive) for drive in raid['Members']],
             capacity=int(raid['Size']))
 
-    raise NodeNotFoundError(f'There is no RAID with node "{node}".')
+    raise DeviceNotFoundError(f'There is no RAID with node "{node}".')
 
   @async_cache(ttl=10)  # Cache the result and re-execute only every 10 seconds
   async def _execute(self, *args: list[str]) -> PList:

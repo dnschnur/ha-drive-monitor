@@ -17,8 +17,8 @@ class Error(Exception):
   """Base class for exceptions raised by this package."""
 
 
-class NodeNotFoundError(Error):
-  """When querying a specific device, no entry exists for the given node."""
+class DeviceNotFoundError(Error):
+  """When querying a specific device, it could not be found."""
 
 
 @dataclass(frozen=True)
