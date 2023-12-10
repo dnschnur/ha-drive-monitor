@@ -28,11 +28,27 @@ def base_node(node: str) -> str:
   return node
 
 
+def get_first_visible_volume(container: PList) -> PList | None:
+  """Returns the first user-visible volume in the given APFS container.
+
+  A user-visible volume is one that would show up in the Disk Utility tree at
+  the top level, i.e. it either has the System role or no role at all.
+  """
+  for volume in container['Volumes']:
+    roles = set(volume['Roles'])
+    if not roles or 'System' in roles:
+      return volume
+  return None
+
+
 def parse_drive_info(drive: PList) -> RAIDDriveInfo:
   """Parses a diskutil RAID Member plist into a RAIDDriveInfo."""
   return RAIDDriveInfo(
       id=drive['AppleRAIDMemberUUID'],
-      node=drive['BSD Name'],
+      # Use only the base node, i.e. 'disk5' instead of 'disk5s2'. That tends to
+      # look cleaner, and since RAID member drives don't show up in 'afps list'
+      # there's no point in keeping the full node name.
+      node=base_node(drive['BSD Name']),
       state=parse_state(drive['MemberStatus']))
 
 
@@ -66,24 +82,29 @@ class DiskUtil:
 
     # Unfortunately 'apfs list' doesn't include RAID members. Query those
     # separately, and generate a mapping that we can then use to merge them.
-    raids = {raid_id.id: await self.get_raid_info(raid_id.node) for raid_id in raid_ids}
+    raids = {raid.id: await self.get_raid_info(raid.node) for raid in raid_ids}
 
     drives = []
     for container in info['Containers']:
+      # Ignore containers that don't have any user-visible volumes
+      if not get_first_visible_volume(container):
+        continue
       for drive in container['PhysicalStores']:
-        drive_id = drive['DiskUUID']
-        if drive_id in raids:
-          drives.extend(DriveID(member.id, member.node, raid=drive_id)
-                        for member in raids[drive_id].members)
-        else:
-          drives.append(DriveID(drive_id, base_node(drive['DeviceIdentifier'])))
+        device_identifier = drive['DeviceIdentifier']
+        if device_identifier == container['DesignatedPhysicalStore']:
+          drive_id = drive['DiskUUID']
+          if drive_id in raids:
+            drives.extend(DriveID(member.id, member.node, raid=drive_id)
+                          for member in raids[drive_id].members)
+          else:
+            drives.append(DriveID(drive_id, device_identifier))
 
     return drives
 
   async def get_raids(self) -> list[RAIDID]:
     """Enumerates and returns all RAIDs present on the system."""
     info = await self._execute('appleraid', 'list')
-    return [RAIDID(id=raid['AppleRAIDSetUUID'], node=base_node(raid['BSD Name']))
+    return [RAIDID(id=raid['AppleRAIDSetUUID'], node=raid['BSD Name'])
             for raid in info.get('AppleRAIDSets', [])]
 
   async def get_drive_info(self, node: str) -> DriveInfo:
@@ -95,11 +116,11 @@ class DiskUtil:
     info = await self._execute('apfs', 'list')
 
     for container in info['Containers']:
-      for drive in container['PhysicalStores']:
-        if node == base_node(drive['DeviceIdentifier']):
-          return DriveInfo(
-              capacity=container['CapacityCeiling'],
-              usage=container['CapacityCeiling'] - container['CapacityFree'])
+      if node == container['DesignatedPhysicalStore']:
+        return DriveInfo(
+            name=get_first_visible_volume(container)['Name'],
+            capacity=container['CapacityCeiling'],
+            usage=container['CapacityCeiling'] - container['CapacityFree'])
 
     raise DeviceNotFoundError(f'There is no drive with node "{node}".')
 
@@ -112,7 +133,7 @@ class DiskUtil:
     info = await self._execute('appleraid', 'list')
 
     for raid in info.get('AppleRAIDSets', []):
-      if base_node(raid['BSD Name']) == node:
+      if raid['BSD Name'] == node:
         return RAIDInfo(
             name=raid['Name'],
             type=parse_type(raid['Level']),

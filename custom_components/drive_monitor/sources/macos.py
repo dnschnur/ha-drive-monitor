@@ -51,8 +51,9 @@ class MacOSSource(Source):
     diskutil_info, smartctl_info = await asyncio.gather(
         self._diskutil.get_drive_info(node), self._smartctl.get_drive_info(node))
 
-    # We can get most drive info from smartctl, but capacity and usage are only
-    # reliably available via diskutil's APFS container stats.
+    # We can get most drive info from smartctl, but name, capacity, and usage
+    # are only reliably available via diskutil's APFS container stats.
+    smartctl_info.name = diskutil_info.name
     smartctl_info.capacity = diskutil_info.capacity
     smartctl_info.usage = diskutil_info.usage
     return smartctl_info
