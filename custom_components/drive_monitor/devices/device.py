@@ -116,6 +116,7 @@ class DeviceSensor(SensorEntity, DeviceEntity):
                icon: str | None = None,
                device_class: SensorDeviceClass | None = None,
                unit_of_measurement: str | None = None,
+               suggested_unit_of_measurement: str | None = None,
                values: Iterable[SensorValue] | None = None,
                value: SensorValue | None = None):
     """
@@ -130,7 +131,10 @@ class DeviceSensor(SensorEntity, DeviceEntity):
       name: Human-readable name of the sensor.
       icon: Sensor's HA UI icon, e.g. 'mdi:thermometer'.
       device_class: Sensor's HA device class, e.g. 'voltage'.
-      unit_of_measurement: Sensor's unit of measurement, e.g. 'kW'
+      unit_of_measurement: Sensor's unit of measurement, e.g. 'kW'.
+      suggested_unit_of_measurement: Sensor's initial display units. E.g. for
+          a sensor whose unit of measurement is 'B' (bytes), the suggested unit
+          might be 'GB' (gigabytes) to make the values shown in the UI readable.
       values: Sensor's set of possible values, e.g. ['open', 'closed'].
       value: Sensor's initial value.
     """
@@ -142,6 +146,7 @@ class DeviceSensor(SensorEntity, DeviceEntity):
     self._attr_icon = icon
     self._attr_device_class = device_class
     self._attr_native_unit_of_measurement = unit_of_measurement
+    self._attr_suggested_unit_of_measurement = suggested_unit_of_measurement
 
     if values:
       self._attr_options = [value.value if isinstance(value, Enum) else value for value in values]
