@@ -9,6 +9,7 @@ import asyncio
 
 from functools import cached_property
 
+from ..devices.device import DeviceNotFoundError
 from ..devices.drive import DriveID, DriveInfo
 from ..devices.raid import RAIDID, RAIDInfo
 
@@ -51,12 +52,17 @@ class MacOSSource(Source):
     diskutil_info, smartctl_info = await asyncio.gather(
         self._diskutil.get_drive_info(node), self._smartctl.get_drive_info(node))
 
+    if not (diskutil_info or smartctl_info):
+      raise DeviceNotFoundError(f'There is no drive with node "{node}".')
+
     # We can get most drive info from smartctl, but name, capacity, and usage
     # are only reliably available via diskutil's APFS container stats.
-    smartctl_info.name = diskutil_info.name
-    smartctl_info.capacity = diskutil_info.capacity
-    smartctl_info.usage = diskutil_info.usage
-    return smartctl_info
+    if diskutil_info and smartctl_info:
+      smartctl_info.name = diskutil_info.name
+      smartctl_info.capacity = diskutil_info.capacity
+      smartctl_info.usage = diskutil_info.usage
+
+    return smartctl_info or diskutil_info
 
   async def get_raid_info(self, node: str) -> RAIDInfo:
     """Returns details and state for the given RAID.

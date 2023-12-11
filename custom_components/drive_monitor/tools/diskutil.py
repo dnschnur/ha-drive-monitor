@@ -5,7 +5,6 @@ import logging
 import plistlib
 import re
 
-from ..devices.device import DeviceNotFoundError
 from ..devices.drive import DriveID, DriveInfo
 from ..devices.raid import RAIDDriveInfo, RAIDID, RAIDInfo, RAIDState, RAIDType
 from ..types import PList
@@ -107,7 +106,7 @@ class DiskUtil:
     return [RAIDID(id=raid['AppleRAIDSetUUID'], node=raid['BSD Name'])
             for raid in info.get('AppleRAIDSets', [])]
 
-  async def get_drive_info(self, node: str) -> DriveInfo:
+  async def get_drive_info(self, node: str) -> DriveInfo | None:
     """Returns capacity and usage for the given drive.
 
     Args:
@@ -122,7 +121,7 @@ class DiskUtil:
             capacity=container['CapacityCeiling'],
             usage=container['CapacityCeiling'] - container['CapacityFree'])
 
-    raise DeviceNotFoundError(f'There is no drive with node "{node}".')
+    return None
 
   async def get_raid_info(self, node: str) -> RAIDInfo:
     """Returns details and state for the given RAID.

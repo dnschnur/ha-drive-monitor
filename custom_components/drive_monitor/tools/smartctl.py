@@ -4,6 +4,8 @@ import asyncio
 import json
 import logging
 
+from enum import IntEnum
+
 from ..devices.drive import DriveInfo, SSDInfo
 from ..manufacturers import get as get_manufacturer
 from ..types import JSON
@@ -12,11 +14,29 @@ from ..utils import async_cache
 LOGGER = logging.getLogger(__name__)
 
 
+class ReturnValue(IntEnum):
+  """Non-successful exit statuses produced by smartctl."""
+  COMMAND_LINE_DID_NOT_PARSE = 1
+  DEVICE_OPEN_FAILED = 2
+  SMART_COMMAND_FAILED = 4
+  DISK_FAILING = 8
+  PREFAIL_BEYOND_THRESHOLD = 16
+  PREFAIL_BEYOND_THRESHOLD_PREVIOUSLY = 32
+  ERROR_LOG_PRESENT = 64
+  DEVICE_SELF_TEST_ERROR = 128
+
+
 def parse_data_units(info: JSON, key: str) -> int | None:
   """Parses the given 'data units' value into a value in bytes."""
   if key in info:
     return info[key] * 512000  # Number of bytes in a data unit
   return None
+
+
+def parse_exit_status(status: int) -> set[ReturnValue]:
+  """Parses the smartctl exit status bit into an enum of statuses."""
+  return {value for value in ReturnValue if status & value}
+
 
 def parse_smart_state(info: JSON) -> bool:
   """Parses S.M.A.R.T. details into a pass/fail state."""
@@ -42,7 +62,7 @@ def parse_ssd_info(info: JSON) -> SSDInfo | None:
 class SmartCtl:
   """Wrapper around the Smartmontools 'smartctl' command."""
 
-  async def get_drive_info(self, node: str) -> DriveInfo:
+  async def get_drive_info(self, node: str) -> DriveInfo | None:
     """Returns details and S.M.A.R.T. attributes for the given drive.
 
     Args:
@@ -50,9 +70,9 @@ class SmartCtl:
     """
     info = await self._execute('-a', node)
 
-    exit_code = info['smartctl']['exit_status']
-    if exit_code != 0:
-      return DriveInfo(name=node)
+    exit_status = parse_exit_status(info['smartctl']['exit_status'])
+    if exit_status & {ReturnValue.COMMAND_LINE_DID_NOT_PARSE, ReturnValue.DEVICE_OPEN_FAILED}:
+      return None
 
     temperature = info.get('temperature')
 
