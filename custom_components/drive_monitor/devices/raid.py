@@ -78,12 +78,14 @@ class RAID(Device):
         self, 'Capacity',
         device_class=SensorDeviceClass.DATA_SIZE,
         unit_of_measurement='B',
-        suggested_unit_of_measurement='GB')
+        suggested_unit_of_measurement='TB',
+        suggested_display_precision=2)
     self.usage = DeviceSensor(
         self, 'Usage',
         device_class=SensorDeviceClass.DATA_SIZE,
         unit_of_measurement='B',
-        suggested_unit_of_measurement='GB')
+        suggested_unit_of_measurement='TB',
+        suggested_display_precision=2)
 
   @property
   def device_info(self) -> DeviceInfo:

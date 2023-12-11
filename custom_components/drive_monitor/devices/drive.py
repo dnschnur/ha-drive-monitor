@@ -99,12 +99,14 @@ class Drive(Device):
           self, 'Capacity',
           device_class=SensorDeviceClass.DATA_SIZE,
           unit_of_measurement='B',
-          suggested_unit_of_measurement='GB')
+          suggested_unit_of_measurement='TB',
+          suggested_display_precision=2)
       self.usage = DeviceSensor(
           self, 'Usage',
           device_class=SensorDeviceClass.DATA_SIZE,
           unit_of_measurement='B',
-          suggested_unit_of_measurement='GB')
+          suggested_unit_of_measurement='TB',
+          suggested_display_precision=2)
 
     self.temperature = DeviceSensor(
         self, 'Temperature',
@@ -143,7 +145,8 @@ class Drive(Device):
         self, 'Bytes Read',
         device_class=SensorDeviceClass.DATA_SIZE,
         unit_of_measurement='B',
-        suggested_unit_of_measurement='GB')
+        suggested_unit_of_measurement='TB',
+        suggested_display_precision=2)
 
   @cached_property
   def bytes_written(self) -> DeviceSensor:
@@ -152,7 +155,8 @@ class Drive(Device):
         self, 'Bytes Written',
         device_class=SensorDeviceClass.DATA_SIZE,
         unit_of_measurement='B',
-        suggested_unit_of_measurement='GB')
+        suggested_unit_of_measurement='TB',
+        suggested_display_precision=2)
 
   @cached_property
   def unsafe_shutdowns(self) -> DeviceSensor:
