@@ -57,7 +57,7 @@ def parse_state(state: str) -> RAIDState:
     'Online': RAIDState.ONLINE,
     'Offline': RAIDState.OFFLINE,
     'Rebuild': RAIDState.REBUILD,
-  }.get(type, RAIDState.UNKNOWN)
+  }.get(state, RAIDState.UNKNOWN)
 
 
 def parse_type(type: str) -> RAIDType:
