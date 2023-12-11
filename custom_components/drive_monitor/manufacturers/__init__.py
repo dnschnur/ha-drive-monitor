@@ -45,7 +45,8 @@ def get(model: str) -> Manufacturer:
     for manufacturer in Manufacturer:
       if manufacturer != Manufacturer.UNKNOWN:
         with open(os.path.join(DB_PATH, f'{manufacturer.name.lower()}.txt'), 'rt') as f:
-          _manufacturers[manufacturer].extend(re.compile(line) for line in f.read().splitlines())
+          _manufacturers[manufacturer].extend(
+              re.compile(line, flags=re.IGNORECASE) for line in f.read().splitlines())
 
   for manufacturer, regexes in _manufacturers.items():
     if any(regex.match(model) for regex in regexes):
