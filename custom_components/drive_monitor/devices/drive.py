@@ -6,6 +6,7 @@ import typing
 
 from dataclasses import dataclass
 from enum import unique, StrEnum
+from functools import cached_property
 
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.helpers.entity import DeviceInfo
@@ -119,6 +120,41 @@ class Drive(Device):
         sw_version=self.firmware_version,
     )
 
+  @cached_property
+  def available_spare(self) -> DeviceSensor:
+    """Percentage of an SSD's 'spare capacity' that remains unused."""
+    return DeviceSensor(
+        self, 'Available Spare',
+        unit_of_measurement='%')
+
+  @cached_property
+  def available_spare_threshold(self) -> DeviceSensor:
+    """Percentage of an SSD's 'spare capacity' considered critically low."""
+    return DeviceSensor(
+        self, 'Available Spare Threshold',
+        unit_of_measurement='%')
+
+  @cached_property
+  def bytes_read(self) -> DeviceSensor:
+    """Total number of bytes read over the drive's lifetime."""
+    return DeviceSensor(
+        self, 'Bytes Read',
+        device_class=SensorDeviceClass.DATA_SIZE,
+        unit_of_measurement='B')
+
+  @cached_property
+  def bytes_written(self) -> DeviceSensor:
+    """Total number of bytes read over the drive's lifetime."""
+    return DeviceSensor(
+        self, 'Bytes Written',
+        device_class=SensorDeviceClass.DATA_SIZE,
+        unit_of_measurement='B')
+
+  @cached_property
+  def unsafe_shutdowns(self) -> DeviceSensor:
+    """Number of times the drive has shut down uncleanly."""
+    return DeviceSensor(self, 'Unsafe Shutdowns')
+
   @async_cache(ttl=10)  # Allow child Entities to call this without re-executing
   async def update(self):
     """Updates all of the device's attributes and entities."""
@@ -138,3 +174,10 @@ class Drive(Device):
       self.capacity.value = info.capacity
       self.usage.value = info.usage
     self.temperature.value = info.temperature
+
+    if info.ssd_info:
+      self.available_spare.value = info.ssd_info.available_spare
+      self.available_spare_threshold.value = info.ssd_info.available_spare_threshold
+      self.bytes_read.value = info.ssd_info.bytes_read
+      self.bytes_written.value = info.ssd_info.bytes_written
+      self.unsafe_shutdowns.value = info.ssd_info.unsafe_shutdowns

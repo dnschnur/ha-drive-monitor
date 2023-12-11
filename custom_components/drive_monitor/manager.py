@@ -65,4 +65,11 @@ class DeviceManager:
     for raid in raids:
       self.raids[raid.node] = RAID(raid)
 
+    # Perform an initial update of all devices.
+    # This is necessary even though we set update_before_add=True above. That's
+    # because some sensors are created as part of the initial update. E.g. SSD
+    # health sensors are only created once we know that the drive is an SSD.
+    devices = itertools.chain(self.drives.values(), self.raids.values())
+    await asyncio.gather(*[device.update() for device in devices])
+
     LOGGER.info(f'Discovered {len(drives)} drives and {len(raids)} RAIDs.')
