@@ -58,6 +58,7 @@ class RAIDInfo:
   state: RAIDState = RAIDState.UNKNOWN
   members: list[RAIDDriveInfo] = field(default_factory=list)
   capacity: int | None = None
+  usage: int | None = None
 
 
 class RAID(Device):
@@ -106,3 +107,4 @@ class RAID(Device):
 
     self.state.value = info.state
     self.capacity.value = info.capacity
+    self.usage.value = info.usage

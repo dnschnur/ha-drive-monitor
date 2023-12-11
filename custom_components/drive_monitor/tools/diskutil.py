@@ -40,6 +40,13 @@ def get_first_visible_volume(container: PList) -> PList | None:
   return None
 
 
+def get_container_usage(containers: PList, node: str) -> int | None:
+  """Returns the total usage of the given container node."""
+  for container in containers:
+    if container['DesignatedPhysicalStore'] == node:
+      return container['CapacityCeiling'] - container['CapacityFree']
+  return None
+
 def parse_drive_info(drive: PList) -> RAIDDriveInfo:
   """Parses a diskutil RAID Member plist into a RAIDDriveInfo."""
   return RAIDDriveInfo(
@@ -129,16 +136,18 @@ class DiskUtil:
     Args:
       node: The RAID's Device Node, e.g. 'disk3'.
     """
-    info = await self._execute('appleraid', 'list')
+    raid_info, apfs_info = await asyncio.gather(
+        self._execute('appleraid', 'list'), self._execute('apfs', 'list'))
 
-    for raid in info.get('AppleRAIDSets', []):
+    for raid in raid_info.get('AppleRAIDSets', []):
       if raid['BSD Name'] == node:
         return RAIDInfo(
             name=raid['Name'],
             type=parse_type(raid['Level']),
             state=parse_state(raid['Status']),
             members=[parse_drive_info(drive) for drive in raid['Members']],
-            capacity=int(raid['Size']))
+            capacity=raid['Size'],
+            usage=get_container_usage(apfs_info['Containers'], node))
 
     raise DeviceNotFoundError(f'There is no RAID with node "{node}".')
 
