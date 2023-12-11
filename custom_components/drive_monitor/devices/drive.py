@@ -1,6 +1,7 @@
 """Device representing a physical drive and all of its HA Entities."""
 
 import asyncio
+import logging
 import typing
 
 from dataclasses import dataclass
@@ -16,6 +17,8 @@ from ..sources.source import Source
 from ..utils import async_cache
 
 from .device import Device, DeviceSensor, StoreID
+
+LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -71,10 +74,16 @@ class DriveInfo:
 
 
 class Drive(Device):
-  """Device representing a physical drive and all of its HA Entities."""
+  """Device representing a physical drive and all of its HA Entities.
+
+  Attributes:
+    raid: ID of the RAID that this drive belongs to, if any.
+  """
 
   def __init__(self, store: DriveID):
     super().__init__(store)
+
+    self.raid: str | None = store.raid
 
     self.manufacturer: Manufacturer | None = None
     self.model: str | None = None
@@ -84,7 +93,7 @@ class Drive(Device):
         self, 'State', icon='mdi:harddisk', value=DriveState.UNKNOWN, values=DriveState)
 
     # RAID member drives don't have their own capacity and usage.
-    if not store.raid:
+    if not self.raid:
       self.capacity = DeviceSensor(
           self, 'Capacity',
           device_class=SensorDeviceClass.DATA_SIZE,
@@ -116,6 +125,7 @@ class Drive(Device):
     try:
       info = await Source.get().get_drive_info(self.node)
     except DeviceNotFoundError:  # Most likely a removable drive
+      LOGGER.info('Drive %s could no longer be found; it may have been removed.', self.name)
       return
 
     self.name = info.name
@@ -124,6 +134,7 @@ class Drive(Device):
     self.firmware_version = info.firmware_version
 
     self.state.value = DriveState.HEALTHY if info.smart_passed else DriveState.UNHEALTHY
-    self.capacity.value = info.capacity
-    self.usage.value = info.usage
+    if not self.raid:
+      self.capacity.value = info.capacity
+      self.usage.value = info.usage
     self.temperature.value = info.temperature
