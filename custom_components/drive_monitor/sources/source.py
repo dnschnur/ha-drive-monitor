@@ -21,6 +21,7 @@ Source implementation for the current OS, and use it to query devices.
 
 from __future__ import annotations
 
+import asyncio
 import importlib
 import inspect
 import platform
@@ -29,6 +30,8 @@ import sys
 from abc import abstractmethod, ABC
 from functools import cache
 from typing import TYPE_CHECKING
+
+from ..utils import async_cache
 
 if TYPE_CHECKING:
   from ..devices.drive import DriveID, DriveInfo
@@ -45,21 +48,6 @@ class SourceNotFoundError(Error):
 
 class Source(ABC):
   """Abstract base class for classes that provide information about devices."""
-
-  @staticmethod
-  @cache
-  def get() -> Source:
-    """Returns the Source for the platform on which this program is running."""
-    name = platform.system()
-    if name == 'Darwin':
-      name = 'MacOS'
-
-    module = importlib.import_module(f'.{name.lower()}', __package__)
-    for _, value in inspect.getmembers(module):
-      if inspect.isclass(value) and issubclass(value, Source):
-        return value()
-
-    raise SourceNotFoundError(f'No Source defined for {name}')
 
   @abstractmethod
   async def get_drives(self) -> list[DriveID]:
@@ -87,3 +75,20 @@ class Source(ABC):
     Args:
       node: The RAID's Device Node, e.g. 'disk3'.
     """
+
+
+@async_cache()
+async def get() -> Source:
+  """Returns the Source for the platform on which this program is running."""
+  name = platform.system()
+  if name == 'Darwin':
+    name = 'MacOS'
+
+  loop = asyncio.get_running_loop()
+  module = await loop.run_in_executor(
+      None, importlib.import_module, f'.{name.lower()}', __package__)
+  for _, value in inspect.getmembers(module):
+    if inspect.isclass(value) and issubclass(value, Source):
+      return value()
+
+  raise SourceNotFoundError(f'No Source defined for {name}')

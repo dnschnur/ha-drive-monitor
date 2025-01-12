@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import itertools
 import logging
+import os
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
@@ -13,7 +14,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from .devices.device import Device
 from .devices.drive import Drive
 from .devices.raid import RAID
-from .sources.source import Source
+from .sources.source import get as get_source
 
 LOGGER = logging.getLogger(__name__)
 
@@ -56,7 +57,7 @@ class DeviceManager:
     Prior to calling this method, the 'drives' and 'raids' attributes are empty
     dicts. After this method returns, they are populated with Drives and RAIDs.
     """
-    source = Source.get()
+    source = await get_source()
     drives, raids = await asyncio.gather(source.get_drives(), source.get_raids())
 
     for drive in drives:

@@ -12,7 +12,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from ..const import DOMAIN
 from ..devices.device import DeviceNotFoundError
 from ..manufacturers import Manufacturer
-from ..sources.source import Source
+from ..sources.source import get as get_source
 from ..utils import async_cache
 
 from .device import Device, DeviceSensor, StoreID
@@ -100,8 +100,9 @@ class RAID(Device):
   @async_cache(ttl=10)  # Allow child Entities to call this without re-executing
   async def update(self):
     """Initializes the device's attributes and entities."""
+    source = await get_source()
     try:
-      info = await Source.get().get_raid_info(self.node)
+      info = await source.get_raid_info(self.node)
     except DeviceNotFoundError:
       return
 
