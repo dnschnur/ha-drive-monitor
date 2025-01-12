@@ -93,7 +93,7 @@ class SmartCtl:
     """Executes 'smartctl' with the given arguments, returning parsed output."""
     LOGGER.debug('Executing "smartctl %s --json"', ' '.join(args))
     process = await asyncio.create_subprocess_exec(
-        'smartctl', *args, '--json', stdout=asyncio.subprocess.PIPE)
+        'smartctl', *args, '--json', close_fds=True, stdout=asyncio.subprocess.PIPE)
     stdout, stderr = await process.communicate()
 
     try:

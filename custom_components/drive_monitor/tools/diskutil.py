@@ -156,7 +156,7 @@ class DiskUtil:
     """Executes 'diskutil' with the given arguments, returning parsed output."""
     LOGGER.debug(f'Executing "diskutil %s -plist"', ' '.join(args))
     process = await asyncio.create_subprocess_exec(
-        'diskutil', *args, '-plist', stdout=asyncio.subprocess.PIPE)
+        'diskutil', *args, '-plist', close_fds=True, stdout=asyncio.subprocess.PIPE)
     stdout, stderr = await process.communicate()
 
     try:
