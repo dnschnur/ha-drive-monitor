@@ -3,8 +3,8 @@
   "name": "Drive Monitor",
   "version": "0.0.1",
   "codeowners": ["@dnschnur"],
-  "config_flow": true,
   "documentation": "README.md",
+  "config_flow": true,
   "dependencies": [],
   "requirements": [],
   "iot_class": "local_polling"

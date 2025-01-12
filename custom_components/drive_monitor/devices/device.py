@@ -93,7 +93,7 @@ class DeviceEntity(Entity):
     device.entities.append(self)
 
   @property
-  def _attr_device_info(self):
+  def device_info(self) -> DeviceInfo:
     """Unique identifier that HA uses to group Entities under this Device.
 
     This is a property, rather than an attribute, because it must be computed
