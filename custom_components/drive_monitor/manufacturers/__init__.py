@@ -7,6 +7,7 @@ matches the model name or family for one of that manufacturer's devices.
 
 from __future__ import annotations
 
+import asyncio
 import os
 import re
 
@@ -31,7 +32,16 @@ class Manufacturer(Enum):
   TEAMGROUP = 'TeamGroup'
 
 
-def get(model: str) -> Manufacturer:
+def _load_manufacturers():
+  """Reads files from disk to initialize the manufacturer mapping."""
+  for manufacturer in Manufacturer:
+    if manufacturer != Manufacturer.UNKNOWN:
+      with open(os.path.join(DB_PATH, f'{manufacturer.name.lower()}.txt'), 'rt') as f:
+        _manufacturers[manufacturer].extend(
+            re.compile(line, flags=re.IGNORECASE) for line in f.read().splitlines())
+
+
+async def get(model: str) -> Manufacturer:
   """Returns the manufacturer of a given model of device.
 
   This method matches the given model against each regex in the manufacturer
@@ -42,11 +52,8 @@ def get(model: str) -> Manufacturer:
     The model name or family of a device, e.g. "Apple SD/SM/TS...E/F/G SSDs".
   """
   if not _manufacturers:
-    for manufacturer in Manufacturer:
-      if manufacturer != Manufacturer.UNKNOWN:
-        with open(os.path.join(DB_PATH, f'{manufacturer.name.lower()}.txt'), 'rt') as f:
-          _manufacturers[manufacturer].extend(
-              re.compile(line, flags=re.IGNORECASE) for line in f.read().splitlines())
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(None, _load_manufacturers)
 
   for manufacturer, regexes in _manufacturers.items():
     if any(regex.match(model) for regex in regexes):

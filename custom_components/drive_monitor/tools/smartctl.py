@@ -74,12 +74,13 @@ class SmartCtl:
     if exit_status & {ReturnValue.COMMAND_LINE_DID_NOT_PARSE, ReturnValue.DEVICE_OPEN_FAILED}:
       return None
 
+    manufacturer = await get_manufacturer(info.get('model_family', info['model_name']))
     temperature = info.get('temperature')
 
     return DriveInfo(
         name=info['device']['name'],
         type=info['device']['type'],
-        manufacturer=get_manufacturer(info.get('model_family', info['model_name'])),
+        manufacturer=manufacturer,
         model=info['model_name'],
         serial_number=info['serial_number'],
         firmware_version=info['firmware_version'],
